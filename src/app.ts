@@ -12,7 +12,8 @@ import {
 // Routers
 import { createTicketRouter } from './routes/new';
 import { showTicketRouter } from './routes/show';
-import { IndexTicketRouter } from './routes/index';
+import { indexTicketRouter } from './routes/index';
+import { updateTicketRouter } from './routes/update';
 
 const app = express();
 // allows for ingress-nginx proxy
@@ -28,7 +29,8 @@ app.use(
 app.use(currentUser);
 app.use(createTicketRouter);
 app.use(showTicketRouter);
-app.use(IndexTicketRouter);
+app.use(indexTicketRouter);
+app.use(updateTicketRouter);
 
 app.all('*', async (req, res, next) => {
   throw new NotFoundError('Page not found.');
