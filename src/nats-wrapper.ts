@@ -4,8 +4,8 @@ import { logIt, LogType } from '@nielsendigital/ms-common';
 class NatsWrapper {
   private _client?: Stan;
 
-  // this is a typescript 'getter' which means it's called as natsWrapper.client
-  // NOT natsWrapper.client()
+  // this is a typescript 'getter' which means it's called as `natsWrapper.client`
+  // NOT natsWrapper.client() -- no parentheses.
   public get client() {
     if (!this._client) {
       logIt.out(LogType.FAIL, 'Cannot access NATS client before connecting.');

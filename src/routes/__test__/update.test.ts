@@ -1,6 +1,4 @@
-import request, { Test } from 'supertest';
-import { ImportsNotUsedAsValues } from 'typescript';
-import { app } from '../../app';
+import { natsWrapper } from '../../nats-wrapper';
 
 it('should return a 404 if provided ticketID does not exist', async () => {
   await global
@@ -38,7 +36,7 @@ it('should return a 401 if the user does not own the ticket', async () => {
     user1Cookie
   );
 
-  const changeTicketResponse = await global
+  await global
     .changeTicket(
       {
         title: global.validTicketTitleUpdated,
@@ -127,4 +125,31 @@ it('should update the ticket provided valid inputs and authentication', async ()
   // ticket title and price should still equal updated values
   expect(getTicketResponse.body.title).toEqual(global.validTicketTitleUpdated);
   expect(getTicketResponse.body.price).toEqual(global.validTicketPriceUpdated);
+});
+
+it('should publish an event', async () => {
+  const user1Cookie = global.getAuthCookie();
+  const createTicketResponse = await global
+    .createTicket(
+      {
+        title: global.validTicketTitle,
+        price: global.validTicketPrice,
+      },
+      user1Cookie
+    )
+    .expect(201);
+
+  // update the ticket
+  await global
+    .changeTicket(
+      {
+        title: global.validTicketTitleUpdated,
+        price: global.validTicketPriceUpdated,
+      },
+      user1Cookie,
+      createTicketResponse.body.id
+    )
+    .expect(200);
+
+  expect(natsWrapper.client.publish).toHaveBeenCalled();
 });
