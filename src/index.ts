@@ -4,7 +4,6 @@ import { NotFoundError, logIt, LogType } from '@nielsendigital/ms-common';
 import { natsWrapper } from './nats-wrapper';
 
 const startApp = async () => {
-  console.log('tickets service starting');
   logIt.out(LogType.STARTED, 'tickets service started');
   // verify env vars are present
 
