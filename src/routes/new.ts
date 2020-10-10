@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express';
 import { body } from 'express-validator';
 import { requireAuth, validateRequest } from '@nielsendigital/ms-common';
 import { Ticket } from '../models/ticket';
+import { TicketCreatedPublisher } from '../events/publishers/ticket-created-publisher';
+import { natsWrapper } from '../nats-wrapper';
 
 const router = express.Router();
 
@@ -15,6 +17,8 @@ router.post(
       .withMessage('Price must be greater than zero.'),
   ],
   validateRequest,
+
+  // create new ticket, save to database, publish TicketCreated Event
   async (req: Request, res: Response) => {
     const { title, price } = req.body;
     const ticket = Ticket.build({
@@ -23,6 +27,16 @@ router.post(
       userId: req.currentUser!.id,
     });
     await ticket.save();
+
+    // Publish TicketCreated event
+    new TicketCreatedPublisher(natsWrapper.client).publish({
+      id: ticket.id,
+      title: ticket.title,
+      price: ticket.price,
+      userId: ticket.userId,
+    });
+
+    // Return successful response
     res.status(201).send(ticket);
   }
 );
