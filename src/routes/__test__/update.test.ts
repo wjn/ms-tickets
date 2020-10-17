@@ -1,4 +1,4 @@
-import { natsWrapper } from '../../nats-wrapper';
+import { natsWrapper } from '@nielsendigital/ms-common';
 
 it('should return a 404 if provided ticketID does not exist', async () => {
   await global

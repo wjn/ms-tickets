@@ -30,7 +30,25 @@ declare global {
 }
 
 // mocks
-jest.mock('../nats-wrapper');
+jest.mock('@nielsendigital/ms-common', () => {
+  const original = jest.requireActual('@nielsendigital/ms-common');
+
+  return {
+    __esmodule: true,
+    ...original,
+    natsWrapper: {
+      client: {
+        publish: jest
+          .fn()
+          .mockImplementation(
+            (subject: string, data: string, callback: () => void) => {
+              callback();
+            }
+          ),
+      },
+    },
+  };
+});
 
 // Database
 let mongo: any;

@@ -4,11 +4,11 @@ import {
   validateRequest,
   NotFoundError,
   requireAuth,
+  natsWrapper,
   NotAuthorizedError,
 } from '@nielsendigital/ms-common';
 import { Ticket } from '../models/ticket';
 import { TicketUpdatedPublisher } from '../events/publishers/ticket-updated-publisher';
-import { natsWrapper } from '../nats-wrapper';
 
 const router = express.Router();
 
