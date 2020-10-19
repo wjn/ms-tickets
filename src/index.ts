@@ -1,7 +1,11 @@
 import mongoose from 'mongoose';
 import { app } from './app';
-import { NotFoundError, logIt, LogType } from '@nielsendigital/ms-common';
-import { natsWrapper } from './nats-wrapper';
+import {
+  NotFoundError,
+  logIt,
+  LogType,
+  natsWrapper,
+} from '@nielsendigital/ms-common';
 
 const startApp = async () => {
   logIt.out(LogType.STARTED, 'tickets service started');
