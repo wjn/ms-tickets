@@ -16,6 +16,7 @@ declare global {
       validTicketPriceUpdated: number;
       invalidTicketPriceLessThanZero: number;
       generatedTicketId: string;
+      ticketBodyValid: object;
       OMIT_VALIDATION_COOKIE: undefined;
       USE_GENERATED_COOKIE: null;
       getTicket(ticketId: string): Test;
