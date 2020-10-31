@@ -1,4 +1,5 @@
 import { natsWrapper } from '@nielsendigital/ms-common';
+import { Ticket } from '../../models/ticket';
 
 it('should return a 404 if provided ticketID does not exist', async () => {
   await global
@@ -48,9 +49,7 @@ it('should return a 401 if the user does not own the ticket', async () => {
     .expect(401);
 
   // validate that the record in the db has not been changed on a failed PUT
-  const getTicketResponse = await global
-    .getTicket(createTicketResponse.body.id)
-    .expect(200);
+  const getTicketResponse = await global.getTicket(createTicketResponse.body.id).expect(200);
 
   // ticket title and price should still equal original values
   expect(getTicketResponse.body.title).toEqual(global.validTicketTitle);
@@ -118,9 +117,7 @@ it('should update the ticket provided valid inputs and authentication', async ()
     .expect(200);
 
   // validate that the record in the db has not been changed on a failed PUT
-  const getTicketResponse = await global
-    .getTicket(createTicketResponse.body.id)
-    .expect(200);
+  const getTicketResponse = await global.getTicket(createTicketResponse.body.id).expect(200);
 
   // ticket title and price should still equal updated values
   expect(getTicketResponse.body.title).toEqual(global.validTicketTitleUpdated);
@@ -152,4 +149,36 @@ it('should publish an event', async () => {
     .expect(200);
 
   expect(natsWrapper.client.publish).toHaveBeenCalled();
+});
+
+it('should reject ticket when ticket is reserved', async () => {
+  // establish user
+  const user1Cookie = global.getAuthCookie();
+  // create ticket to test.
+  const createTicketResponse = await global
+    .createTicket(
+      {
+        title: global.validTicketTitle,
+        price: global.validTicketPrice,
+      },
+      user1Cookie
+    )
+    .expect(201);
+
+  // retrieve the just created ticket from the db
+  const ticket = await Ticket.findById(createTicketResponse.body.id);
+  ticket?.set({ orderId: global.generatedOrderId });
+  await ticket?.save();
+
+  // update the reserved ticket
+  await global
+    .changeTicket(
+      {
+        title: global.validTicketTitleUpdated,
+        price: global.validTicketPriceUpdated,
+      },
+      user1Cookie,
+      createTicketResponse.body.id
+    )
+    .expect(400);
 });

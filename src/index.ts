@@ -1,11 +1,8 @@
 import mongoose from 'mongoose';
 import { app } from './app';
-import {
-  NotFoundError,
-  logIt,
-  LogType,
-  natsWrapper,
-} from '@nielsendigital/ms-common';
+import { NotFoundError, logIt, LogType, natsWrapper } from '@nielsendigital/ms-common';
+import { OrderCanceledListener } from './events/listeners/order-canceled-listener';
+import { OrderCreatedListener } from './events/listeners/order-created-listener';
 
 const startApp = async () => {
   logIt.out(LogType.STARTED, 'tickets service started');
@@ -33,7 +30,6 @@ const startApp = async () => {
   logIt.out(LogType.INFO, 'All required ENV Vars verified as defined');
 
   // connect to NATS
-
   try {
     logIt.out(LogType.INFO, 'Attempting connection to NATS');
 
@@ -53,13 +49,19 @@ const startApp = async () => {
     // gracefully exit
     process.on('SIGINT', () => natsWrapper.client.close());
     process.on('SIGTERM', () => natsWrapper.client.close());
+    // -----
   } catch (err) {
     logIt.out(LogType.ERROR, 'NATS failed to load.');
     logIt.out(LogType.ERROR, err);
   }
 
-  // connect to MongoDB
+  // Event Listeners
+  try {
+    new OrderCreatedListener(natsWrapper.client).listen();
+    new OrderCanceledListener(natsWrapper.client).listen();
+  } catch (error) {}
 
+  // connect to MongoDB
   try {
     logIt.out(LogType.INFO, 'Attempting connection to MongoDB');
 
@@ -69,6 +71,7 @@ const startApp = async () => {
       useCreateIndex: true,
     });
     logIt.out(LogType.SUCCESS, 'Connected to mongoDB');
+    // -----
   } catch (err) {
     logIt.out(LogType.ERROR, err);
   }
