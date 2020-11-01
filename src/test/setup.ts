@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { app } from '../app';
 import request, { Test } from 'supertest';
 import jwt from 'jsonwebtoken';
+import { TicketAttrs } from '../models/ticket';
 
 declare global {
   namespace NodeJS {
@@ -16,15 +17,13 @@ declare global {
       validTicketPriceUpdated: number;
       invalidTicketPriceLessThanZero: number;
       generatedTicketId: string;
+      generatedOrderId: string;
+      ticketBodyValid: TicketAttrs;
       OMIT_VALIDATION_COOKIE: undefined;
       USE_GENERATED_COOKIE: null;
       getTicket(ticketId: string): Test;
       createTicket(body: object, userCookie?: string[] | null): Test;
-      changeTicket(
-        body: object,
-        userCookie: string[] | null | undefined,
-        ticketId?: string | null
-      ): Test;
+      changeTicket(body: object, userCookie: string[] | null | undefined, ticketId?: string | null): Test;
     }
   }
 }
@@ -38,13 +37,9 @@ jest.mock('@nielsendigital/ms-common', () => {
     ...original,
     natsWrapper: {
       client: {
-        publish: jest
-          .fn()
-          .mockImplementation(
-            (subject: string, data: string, callback: () => void) => {
-              callback();
-            }
-          ),
+        publish: jest.fn().mockImplementation((subject: string, data: string, callback: () => void) => {
+          callback();
+        }),
       },
     },
   };
@@ -88,6 +83,12 @@ global.validTicketPrice = 20;
 global.validTicketPriceUpdated = 100;
 global.invalidTicketPriceLessThanZero = -10;
 global.generatedTicketId = getMongooseId();
+global.generatedOrderId = getMongooseId();
+global.ticketBodyValid = {
+  title: global.validTicketTitle,
+  price: global.validTicketPrice,
+  userId: getMongooseId(),
+};
 
 global.getAuthCookie = (): string[] => {
   // build a JWT payload {id, email}
@@ -165,10 +166,7 @@ global.getTicket = (ticketId) => {
 global.createTicket = (body, userCookie = null) => {
   const _userCookie = userCookie ? userCookie : global.getAuthCookie();
 
-  return request(app)
-    .post('/api/tickets')
-    .set('Cookie', _userCookie)
-    .send(body);
+  return request(app).post('/api/tickets').set('Cookie', _userCookie).send(body);
 };
 
 global.changeTicket = (body, userCookie, ticketId = null) => {
@@ -179,16 +177,10 @@ global.changeTicket = (body, userCookie, ticketId = null) => {
       return request(app).put(`/api/tickets/${_ticketId}`).send(body);
       break;
     case global.USE_GENERATED_COOKIE:
-      return request(app)
-        .put(`/api/tickets/${_ticketId}`)
-        .set('Cookie', global.getAuthCookie())
-        .send(body);
+      return request(app).put(`/api/tickets/${_ticketId}`).set('Cookie', global.getAuthCookie()).send(body);
       break;
     default:
-      return request(app)
-        .put(`/api/tickets/${_ticketId}`)
-        .set('Cookie', userCookie)
-        .send(body);
+      return request(app).put(`/api/tickets/${_ticketId}`).set('Cookie', userCookie).send(body);
       break;
   }
 };

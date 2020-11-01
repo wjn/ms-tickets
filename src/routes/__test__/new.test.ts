@@ -40,6 +40,7 @@ it('should return an error if invalid title is provided', async () => {
     })
     .expect(400);
 });
+
 it('should return an error if invalid price is provided', async () => {
   await request(app)
     .post('/api/tickets')
@@ -58,6 +59,7 @@ it('should return an error if invalid price is provided', async () => {
     })
     .expect(400);
 });
+
 it('should create a ticket with valid inputs', async () => {
   // since we delete everything in the database when we start
   // this means that we always start with 0 records.
