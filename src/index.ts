@@ -78,7 +78,7 @@ const startApp = async () => {
 
   // Listen for traffic
   app.listen(3000, () => {
-    logIt.out(LogType.INFO, '>>>>> Ticket service listening on port 3000.');
+    logIt.out(LogType.LISTEN, '>>>>> Ticket service listening on port 3000.');
   });
 };
 
