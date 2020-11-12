@@ -57,9 +57,14 @@ const startApp = async () => {
 
   // Event Listeners
   try {
+    logIt.out(LogType.INFO, 'Attempting to load Listeners');
+
     new OrderCreatedListener(natsWrapper.client).listen();
     new OrderCanceledListener(natsWrapper.client).listen();
-  } catch (error) {}
+  } catch (err) {
+    logIt.out(LogType.ERROR, 'Listeners failed to load');
+    logIt.out(LogType.ERROR, err);
+  }
 
   // connect to MongoDB
   try {
@@ -73,6 +78,7 @@ const startApp = async () => {
     logIt.out(LogType.SUCCESS, 'Connected to mongoDB');
     // -----
   } catch (err) {
+    logIt.out(LogType.ERROR, `Database failed to load.`);
     logIt.out(LogType.ERROR, err);
   }
 
